@@ -1,6 +1,7 @@
 # Machine Learning Engineer Nanodegree
 ## Capstone Proposal
 Rafael Pettersen Caixeta
+
 April 12, 2017
 
 ### Domain Background
