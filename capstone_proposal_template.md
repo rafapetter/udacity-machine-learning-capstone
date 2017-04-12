@@ -7,7 +7,7 @@ April 12, 2017
 
 Natural language sentence matching (NLSM) is the task of comparing two sentences and identifying the relationship between them. The task is critical for many applications in natural language processing (NLP), such as information retrieval [1], question answering [2] and paraphrase identification [3].
 
-Recently,  deep  neural  network  based  models  have  been applied in this area and achieved some important progresses. A lot of deep models follow the paradigm to first represent the whole sentence to a single distributed representation, and then compute similarities between the two vectors to output the matching score. Examples include DSSM [4], DeepMatch [5], CDSMM [6], ARC-I [7], CNTN [8], LSTM-RNN [9] and Bi-CNN-MI [10]. 
+Recently,  deep  neural  network  based  models  have  been applied in this area and achieved some important progress. A lot of deep models follow the paradigm to first represent the whole sentence to a single distributed representation, and then compute similarities between the two vectors to output the matching score. Examples include DSSM [4], DeepMatch [5], CDSMM [6], ARC-I [7], CNTN [8], LSTM-RNN [9] and Bi-CNN-MI [10]. 
 
 Natural language sentences have complicated structures, both sequential and hierarchical, that are essential  for  understanding them. A successful sentence-matching algorithm therefore needs to capture not only the internal structures of sentences but also the rich patterns in their interactions. Sentence similarity is a condition or property that can be measured between two sentences, which  determines  the  degree  of  similarity  between  them.  Sentence similarity ranges between 0% (no relationship at all) and 100% (sentences are semanticaly identical).  Also  note  that  two  similar  sentences  do  not  need  to  share  the  content, neither verbatim nor expressed in other words. They may just cover the same topic or merely be written in the same language.
 
@@ -21,13 +21,13 @@ The duplicate detection problem can be defined as follows: given a pair of quest
  
 where 1 represents that q1 and q2 have the same intent and 0 otherwise.
 
-The challenge of text matching lies in detecting duplicates at a intent-based, semantic level. To only use a word-based comparison approach will not give us the best results. Being inspired by recent advances in the deep learning research community, I will approach this challenge by representing sentences or their semantic and syntactic relations from different levels of abstractions with neural networks [7;15]. 
+The challenge of text matching lies in detecting duplicates at a intent-based, semantic level. To only use a word-based comparison approach will not give us the best results. Being inspired by recent advances in the deep learning research community, I will approach this challenge by representing sentences on their semantic and syntactic relations from different levels of abstractions with neural networks [7;15]. 
 
-I will be using a Long Short Term Memory network (LSTM), variant of Recurrent Neural Networks (RNNs), which are better at capturing long-term dependencies. I plan to use Word2Vec [16] to convert each question into a semantic vector, and then fed those question embeddings into a representation layer. And finally, concatenate the two vector representation outputs from the representation layers and fed the concatenated vector into a dense layer to produce the final classification result.
+I will be using a Long Short Term Memory network (LSTM), variant of Recurrent Neural Networks (RNNs), which are better at capturing long-term dependencies. I plan to use a variation of Word2Vec [16] to convert each question into a semantic vector, and then fed those question embeddings into the neural network.
 
 ### Datasets and Inputs
 
-To develop a model for similarity detection both a training and a test corpus, built to the requirements of the task to achieve, have to be available. Corpora specifically designed for this task already exist, such as the METER Corpus [17], the Microsoft Research Paraphrase Corpus [18], the PAN Plagiarism Corpus [19] and Stanford Natural Language Inference (SNLI)[20]. Recent approaches to text-pair classification have mostly been developed on the SNLI corpus. It provides over 500,000 pairs of short sentences, with human annotations indicating whether an entailment, contradiction or neutral logical relationship holds between the sentences. However, the data is also quite artificial, most of the questions aren't human generated. And that is why the Quora dataset is so important.
+To develop a model for similarity detection is desired to have some pre-processed corpus available. Corpora specifically designed for this task already exist, such as the METER Corpus [17], the Microsoft Research Paraphrase Corpus [18], the PAN Plagiarism Corpus [19] and Stanford Natural Language Inference (SNLI)[20]. Recent approaches to text-pair classification have mostly been developed on the SNLI corpus. It provides over 500,000 pairs of short sentences, with human annotations indicating whether an entailment, contradiction or neutral logical relationship holds between the sentences. However, the data is also quite artificial, most of the questions aren't human generated. And that is why the Quora dataset is so important.
 
 The Quora dataset is a set of 400,000 lines of question pairs, with annotations indicating whether the questions request the same information. This data set is large, real, and relevant — a rare combination. Each line contains IDs for each question in the pair, the full text for each question, and a binary value that indicates whether the line truly contains a duplicate pair.
 
@@ -35,7 +35,7 @@ It's worth noting that there is a lot more testing data than training data. Quor
 
 ### Solution Statement
 
-To tackle this problem of duplicate questions, I will use a deep learning framework based on the “Siamese” architecture [21]. In this framework, the same neural network encoder (LSTM) is applied to two input sentences individually, so that both of the two sentences are encoded into sentence vectors in the same embedding space. Then, a matching decision is made solely based on the two sentence vectors [22;23]. The advantage of this framework is that sharing parameters makes the model smaller and easier to train, and the sentence vectors can be used for visualization, sentence clustering and many other purposes [24]. But the disadvantage is that there is no interaction between the two sentences during the encoding procedure, which may lose some important information.
+To tackle this problem of duplicate questions, I will use a deep learning framework based on the “Siamese” architecture [21]. In this framework, the same neural network encoder (LSTM) is applied to two input sentences individually, so that both of the two sentences are encoded into sentence vectors in the same embedding space. Then, a matching decision is made solely based on the two sentence vectors [22;23]. The advantage of this framework is that sharing parameters makes the model smaller and easier to train, and the sentence vectors can be used for visualization, sentence clustering and many other purposes [24]. The disadvantage is that there is no interaction between the two sentences during the encoding procedure, which may lose some important information.
 
 On the Siamese framework, I will implement the “Siamese-LSTM” model. It will encode two input sentences into two sentence vectors with a neural network encoder, and make a decision based on the cosine similarity between the two sentence vectors. The LSTM model will be designed according to the architectures in [24].
 
@@ -54,18 +54,18 @@ I propose to use the evaluation metric defined by Kaggle on the Quora competitio
 ### Project Design
 
 The first step of this project is to do a detailed Exploratory Data Analysis (EDA), both on training and testing dataset:
-1) Text Analysis: a distribution on the number of characters per word and per questio; the most frequent words.
+1) Text Analysis: a distribution on the number of characters per word and per question; the most frequent words.
 2) Semantic Analysis: different punctuation in questions
 
-The secod step is to convert the questions into semantic vectors, trying two algorithms: GloVe [26] from Stanford NLP Group and Sense2vec [27] from spaCy. Both are algorithms that embed words into a vector space with 300 dimensions in general. They will capture semantics and even analogies between different words. GloVe is easy to train and it is flexible to add new words outside of its vocabulary. SpaCy has been recenlty released and is trained on Wikipedia and therefore, it might be stronger in terms of word semantics.
+The second step is to convert the questions into semantic vectors, trying two algorithms: GloVe [26] from Stanford NLP Group and a variation of sense2vec [27] from spaCy. Both are algorithms that embed words into a vector space with 300 dimensions in general. They will capture semantics and even analogies between different words. GloVe is easy to train and it is flexible to add new words outside of its vocabulary. SpaCy has been recenlty released and is trained on Wikipedia, therefore, it might be stronger in terms of word semantics.
 
 On the third step, I will use TF-IDF (Term Frequency - Inverse Document Frequency), which will enhance the mean vector representation. It will be applied weighted average of word vectors by using these scores, to emphasizes the importance of discriminating words and avoid useless, frequent words which are shared by many questions. In other words, this means that we weigh the terms by how uncommon they are, meaning that we care more about rare words existing in both questions than common one. This makes sense, as for example we care more about whether the word "exercise" appears in both than the word "and" - as uncommon words will be more indicative of the content. 
 
-On the fourth step, I will build a Siamese network with 3 layers network using Euclidean distance as the measure of instance similarity. It has Batch Normalization per layer. It is particularly important since BN layers enhance the performance considerably. I believe, they are able to normalize the final feature vectors and Euclidean distance performances better in this normalized space.
+On the fourth step, I will build a Siamese network with 3 layers network using Euclidean distance as the measure of instance similarity. It has Batch Normalization per layer. It is particularly important since BN layers enhance the performance considerably. I believe they are able to normalize the final feature vectors and Euclidean distance performances better in this normalized space.
 
 On the fifth step, after having the data pre-processed and the model set, the data is split into training and validation set. And now we start training the model for 25 epochs, saving the weights from the model checkpoint with the maximum validation accuracy.
 
-And finally, the sixth and last step is to evaluate the model trained. We get the best checkpointed model from the training above and run on our test set. We will be looking for the log loss between the predicted values and the ground truth.
+And finally, the sixth and last step is to evaluate the model trained. We get the best checkpointed model from the training above and run on the test set. We will be looking for the log loss between the predicted values and the ground truth.
 
 ### References
 
