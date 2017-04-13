@@ -15,7 +15,7 @@ Natural language sentences have complicated structures, both sequential and hier
 
 ### Problem Statement
 
-For this project I'm proposing to use a Quora dataset from a Kaggle competition [11], which is related to the problem of identifying duplicate setences. Quora is a question-and-answer site where questions are asked, answered, edited and organized by its community of users [12]. The Quora motivation for releasing this dataset is that "there should be a single question page for each logically distinct question" [13]. This type of problem is challenging because you usually can't solve it by looking at individual words. No single word is going to tell you whether two questions are duplicates. You have to look at both items together. And that is the main reason for choosing this problem, I believe that helping to solve this task might bring some enlightenment to other critical NLP tasks.
+For this project I'm proposing a binary classification problem, and I am going to use the Quora dataset from a Kaggle competition [11], which is related to the problem of identifying duplicate setences. Quora is a question-and-answer site where questions are asked, answered, edited and organized by its community of users [12]. The Quora motivation for releasing this dataset is that "there should be a single question page for each logically distinct question" [13]. This type of problem is challenging because you usually can't solve it by looking at individual words. No single word is going to tell you whether two questions are duplicates. You have to look at both items together. And that is the main reason for choosing this problem, I believe that helping to solve this task might bring some enlightenment to other critical NLP tasks.
 
 The duplicate detection problem can be defined as follows: given a pair of questions q1 and q2, train a model that learns the function[14]:
  
@@ -31,9 +31,23 @@ I will be using a Long Short Term Memory network (LSTM), variant of Recurrent Ne
 
 To develop a model for similarity detection is desired to have some pre-processed corpus available. Corpora specifically designed for this task already exist, such as the METER Corpus [17], the Microsoft Research Paraphrase Corpus [18], the PAN Plagiarism Corpus [19] and Stanford Natural Language Inference (SNLI)[20]. Recent approaches to text-pair classification have mostly been developed on the SNLI corpus. It provides over 500,000 pairs of short sentences, with human annotations indicating whether an entailment, contradiction or neutral logical relationship holds between the sentences. However, the data is also quite artificial, most of the questions aren't human generated. And that is why the Quora dataset is so important.
 
-The Quora dataset is a set of 400,000 lines of question pairs, with annotations indicating whether the questions request the same information. This data set is large, real, and relevant — a rare combination. Each line contains IDs for each question in the pair, the full text for each question, and a binary value that indicates whether the line truly contains a duplicate pair.
+The Quora dataset is a set of question pairs, with annotations indicating whether the questions request the same information. This data set is large, real, and relevant — a rare combination. Each line contains IDs for each question in the pair, the full text for each question, and a binary value that indicates whether the line truly contains a duplicate pair. Considering that the dataset is already split into two files, training and test, here's a quick analysis of this dataset.
 
-It's worth noting that there is a lot more testing data than training data. Quora's original sampling method returned an imbalanced dataset with many more true examples of duplicate pairs than non-duplicates. Therefore, they supplemented the test set with negative examples (computer-generated question pairs), as an anti-cheating measure for the Kaggle competition. All of the questions in the training set are genuine examples from Quora. One source of negative examples were pairs of “related questions” which, although pertaining to similar topics, are not truly semantically equivalent [13].
+1) Training:
+  - Question pairs: 404290
+  - Questions: 537933
+  - Duplicate pairs: 36.92%
+  - Most questions have from 15 to 150 characters
+
+2) Test:
+  - Question pairs: 2345796
+  - Questions: 4363832
+  - Question pairs (Training) / Question pairs (Test): 17.0%
+  - Most questions have from 15 to 150 characters  
+
+From the training dataset, 37% are confirmed duplicates (positive class), which it seems reasonable in a real-life scenario since we expect that the Quora user is more likely to have looked for an answer before posting a question. All of the questions in the training are genuine examples from Quora. One source of negative examples were pairs of “related questions” which, although pertaining to similar topics, are not truly semantically equivalent [13]. Both training and test have a simliar distribution of number of characters per question, with only a few outliers out of this range.
+
+It's worth noting that there is a lot more test data than training data, approximately 5 times more. The explanation is that Quora's original sampling method returned an imbalanced dataset with many more true examples of duplicate pairs than non-duplicates. Therefore, they supplemented the test set with negative examples (computer-generated question pairs), as an anti-cheating measure for the Kaggle competition.
 
 ### Solution Statement
 
@@ -43,15 +57,19 @@ On the Siamese framework, I will implement the “Siamese-LSTM” model. It will
 
 ### Benchmark Model
 
-This is a brand-new dataset, no results have been published yet. But we do have Quora discussing about their current production model for solving this problem. They have used a random forest model with tens of handcrafted features, including the cosine similarity of the average of the word2vec embeddings of tokens, the number of common words, the number of common topics labeled on the questions, and the part-of-speech tags of the words [14]. And recently they have experimented with three end-to-end deep learning solutions.
+This is a brand-new dataset, no results have been published yet. But we do have Quora discussing about their current production model for solving this problem. They have used a random forest model with tens of handcrafted features, including the cosine similarity of the average of the word2vec embeddings of tokens, the number of common words, the number of common topics labeled on the questions, and the part-of-speech tags of the words [14]. And recently they have experimented with end-to-end deep learning solutions.
 
-The first two approaches were LSTM. They have trained their own word embeddings using Quora's text corpus, combined them to generate question embeddings for the two questions, and then fed those question embeddings into a representation layer. Then concatenated the two vector representation outputs from the representation layers and fed the concatenated vector into a dense layer to produce the final classification result.
-
-On their last approach, they have tried an attention-based approach from Google Research [25] that combined neural network attention with token alignment. The most prominent advantage of this approach, relative to other attention-based approaches, was the small number of parameters.
+To have a benchmark so we can use as a threshold for defining success and failure, I did test a Random Forest Classifier from sklearn. As input I've converted the questions pair, from the training dataset, to a matrix of TF-IDF (Term Frequency - Inverse Document Frequency) features and used it to fit a Random Forest model. And finally I ran a prediction on the test dataset and took a log loss score of 0.6015. I intend to significantly improve this score by using a deep learning framework.
 
 ### Evaluation Metrics
 
-I propose to use the evaluation metric defined by Kaggle on the Quora competition [11], where the model will be evaluated on the log loss (logistic loss or cross-entropy loss) between the predicted values and the ground truth. For each ID in the test set, there must have a prediction on the probability that the questions are duplicates (a number between 0 and 1). 
+I propose to use the evaluation metric defined by Kaggle on the Quora competition [11], where the model will be evaluated on the log loss (logistic loss or cross-entropy loss) between the predicted values and the ground truth. For each ID in the test set, there must have a prediction on the probability that the questions are duplicates (a number between 0 and 1). The log loss looks at the actual probabilities as opposed to the order of predictions. The metric is negative the log likelihood of the model that says each test observation is chosen independently from a distribution that places the submitted probability mass on the corresponding class, for each observation [28].
+
+<p align="center">
+<img src ="https://i.stack.imgur.com/NEmt7.png)"/>
+</p>
+
+where N is the number of observations, M is the number of class labels, loglog is the natural logarithm, yi,jyi,j is 1 if observation ii is in class jj and 0 otherwise, and pi,jpi,j is the predicted probability that observation ii is in class jj.
 
 ### Project Design
 
@@ -61,7 +79,7 @@ The first step of this project is to do a detailed Exploratory Data Analysis (ED
 
 The second step is to convert the questions into semantic vectors, trying two algorithms: GloVe [26] from Stanford NLP Group and a variation of sense2vec [27] from spaCy. Both are algorithms that embed words into a vector space with 300 dimensions in general. They will capture semantics and even analogies between different words. GloVe is easy to train and it is flexible to add new words outside of its vocabulary. SpaCy has been recenlty released and is trained on Wikipedia, therefore, it might be stronger in terms of word semantics.
 
-On the third step, I will use TF-IDF (Term Frequency - Inverse Document Frequency), which will enhance the mean vector representation. It will be applied weighted average of word vectors by using these scores, to emphasizes the importance of discriminating words and avoid useless, frequent words which are shared by many questions. In other words, this means that we weigh the terms by how uncommon they are, meaning that we care more about rare words existing in both questions than common one. This makes sense, as for example we care more about whether the word "exercise" appears in both than the word "and" - as uncommon words will be more indicative of the content. 
+On the third step, I will use TF-IDF, which will enhance the mean vector representation. It will be applied weighted average of word vectors by using these scores, to emphasizes the importance of discriminating words and avoid useless, frequent words which are shared by many questions. In other words, this means that we weigh the terms by how uncommon they are, meaning that we care more about rare words existing in both questions than common one. This makes sense, as for example we care more about whether the word "exercise" appears in both than the word "and" - as uncommon words will be more indicative of the content. 
 
 On the fourth step, I will build a Siamese network with 3 layers network using Euclidean distance as the measure of instance similarity. It has Batch Normalization per layer. It is particularly important since BN layers enhance the performance considerably. I believe they are able to normalize the final feature vectors and Euclidean distance performances better in this normalized space.
 
@@ -124,3 +142,5 @@ And finally, the sixth and last step is to evaluate the model trained. We get th
 [26] GloVe - https://nlp.stanford.edu/projects/glove/
 
 [27] Sense2vec with spaCy and Gensim - https://explosion.ai/blog/sense2vec-with-spacy
+
+[28] https://www.kaggle.com/wiki/LogLoss
