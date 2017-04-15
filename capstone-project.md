@@ -25,7 +25,7 @@ To solve this problem I'm having the same motivation as Quora had when releasing
 
 The duplicate detection problem can be defined as follows: given a pair of questions q1 and q2, train a model that learns the function[14]:
  
- f(q1, q2) → 0 or 1 
+** f(q1, q2) → 0 or 1 **
  
 where 1 represents that q1 and q2 have the same intent and 0 otherwise.
 
@@ -50,13 +50,13 @@ _(approx. 2-4 pages)_
 
 The Quora dataset is a set of question pairs, with annotations indicating whether the questions request the same information. This data set is large, real, and relevant — a rare combination. Each line contains IDs for each question in the pair, the full text for each question, and a binary value that indicates whether the line truly contains a duplicate pair. Considering that the dataset is already split into two files, training and test, here's a quick analysis of this dataset.
 
-1) Training:
+**1) Training**:
   - Question pairs: 404290
   - Questions: 537933
   - Duplicate pairs: 36.92%
   - Most questions have from 15 to 150 characters
 
-2) Test:
+**2) Test**:
   - Question pairs: 2345796
   - Questions: 4363832
   - Question pairs (Training) / Question pairs (Test): 17.0%
@@ -66,12 +66,51 @@ From the training dataset, 37% are confirmed duplicates (positive class), which 
 
 It's worth noting that there is a lot more test data than training data, approximately 5 times more. The explanation is that Quora's original sampling method returned an imbalanced dataset with many more true examples of duplicate pairs than non-duplicates. Therefore, they supplemented the test set with negative examples (computer-generated question pairs), as an anti-cheating measure for the Kaggle competition.
 
+Now let's take a look at usage of different punctuation and capital letters in questions - this may form a basis for some interesting features later on. Analysis here will be only on the training set, to avoid the auto-generated questions:
+
+- Questions with question marks: 99.87%
+- Questions with [math] tags: 0.12%
+- Questions with full stops: 6.31%
+- Questions with capitalised first letters: 99.81%
+- Questions with capital letters: 99.95%
+- Questions with numbers: 11.83%
+
 ### Exploratory Visualization
 
-In this section, you will need to provide some form of visualization that summarizes or extracts a relevant characteristic or feature about the data. The visualization should adequately support the data being used. Discuss why this visualization was chosen and how it is relevant. Questions to ask yourself when writing this section:
-- _Have you visualized a relevant characteristic or feature about the dataset or input data?_
-- _Is the visualization thoroughly analyzed and discussed?_
-- _If a plot is provided, are the axes, title, and datum clearly defined?_
+Let us have an idea of how the data is distributed with respect to the number of characters and words per question, both on training and test datasets.
+
+<p align="center">
+<img src ="https://raw.githubusercontent.com/rafapetter/udacity-machine-learning-capstone/master/eda/chars_distribution.png"/>
+</p>
+
+We can see that the number of characters in most questions are in the range from 15 to 150. Both training and test have a very simliar distribution. The test one seems to be smoother, maybe because it has a larger dataset (5 times greater than training).
+
+One important thing to notice is the steep cut-off at 150 characters for the training set, for most questions, while the test set slowly decreases after 150. And that's because, as of April 2016, Quora allows up to 150 for the question [https://www.quora.com/topic/Character-Limits-on-Quora/faq]. 
+
+It's also worth noting that I've truncated this histogram at 250 characters, and that the max of the distribution is at just under 1200 characters for both sets - although samples with over 220 characters are very rare. We can only conclude that questions greater than 150 characters are previous to April 2016.
+
+Let's do the same for word count. I'll be using a naive method for splitting words (splitting on spaces instead of using a serious tokenizer), although this should still give us a good idea of the distribution.
+
+<p align="center">
+<img src ="https://raw.githubusercontent.com/rafapetter/udacity-machine-learning-capstone/master/eda/words_distribution.png"/>
+</p>
+
+We see a similar distribution for word count, with most questions being about 10 words long. It looks to me like the distribution of the training set seems more "pointy", while on the test set it is wider. Nevertheless, they are quite similar.
+
+So what are the most common words? Let's take a look at a word cloud.
+
+<p align="center">
+<img src ="https://raw.githubusercontent.com/rafapetter/udacity-machine-learning-capstone/master/eda/word_cloud.png"/>
+</p>
+
+On the word cloud, we may conclude a few importat aspects of the dataset:
+
+- **Type of Questions**: there's a lot on how questions are being emphasized: 'difference', 'best way', 'better', 'good'. That's important because, for instance, questions like 'what is the best way to learn Python' might be very similar to 'what is a better way to start learning Python'.
+
+- **Content about recent events**: high frequency terms like 'Hillary Clinton' and 'Donald Trump', most likely related to the recent presidential election. We may conclude that we have a dataset with questions that were made over the last year.
+
+- **India user base**: there's a lot about the country of India, with terms like 'India', 'Bangalore', 'India Best'. Which confirms the results from Alexa [http://www.alexa.com/siteinfo/quora.com] showing that India is the most active country on the Quora website.
+
 
 ### Algorithms and Techniques
 
