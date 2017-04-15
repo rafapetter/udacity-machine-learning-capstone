@@ -24,8 +24,8 @@ Quora is a question-and-answer site where questions are asked, answered, edited 
 To solve this problem I'm having the same motivation as Quora had when releasing their dataset: "there should be a single question page for each logically distinct question" [13]. This type of problem is challenging because you usually can't solve it by looking at individual words. No single word is going to tell you whether two questions are duplicates. You have to look at both items together. And that is the main reason for choosing this problem, I believe that helping to solve this task might bring some enlightenment to other critical NLP tasks.
 
 The duplicate detection problem can be defined as follows: given a pair of questions q1 and q2, train a model that learns the function[14]:
- 
-** f(q1, q2) → 0 or 1 **
+
+**f(q1, q2) → 0 or 1**
  
 where 1 represents that q1 and q2 have the same intent and 0 otherwise.
 
@@ -44,7 +44,6 @@ I propose to use the evaluation metric defined by Kaggle on the Quora competitio
 where N is the number of observations, M is the number of class labels, loglog is the natural logarithm, yi,jyi,j is 1 if observation ii is in class jj and 0 otherwise, and pi,jpi,j is the predicted probability that observation ii is in class jj.
 
 ## II. Analysis
-_(approx. 2-4 pages)_
 
 ### Data Exploration
 
@@ -66,7 +65,7 @@ From the training dataset, 37% are confirmed duplicates (positive class), which 
 
 It's worth noting that there is a lot more test data than training data, approximately 5 times more. The explanation is that Quora's original sampling method returned an imbalanced dataset with many more true examples of duplicate pairs than non-duplicates. Therefore, they supplemented the test set with negative examples (computer-generated question pairs), as an anti-cheating measure for the Kaggle competition.
 
-Now let's take a look at usage of different punctuation and capital letters in questions - this may form a basis for some interesting features later on. Analysis here will be only on the training set, to avoid the auto-generated questions:
+As for a semantic analysis, let's take a look at usage of different punctuation and capital letters in questions - this may form a basis for some interesting features later on. This analysis is only on the training dataset, to avoid the auto-generated questions from the test dataset:
 
 - Questions with question marks: 99.87%
 - Questions with [math] tags: 0.12%
@@ -111,6 +110,13 @@ On the word cloud, we may conclude a few importat aspects of the dataset:
 
 - **India user base**: there's a lot about the country of India, with terms like 'India', 'Bangalore', 'India Best'. Which confirms the results from Alexa [http://www.alexa.com/siteinfo/quora.com] showing that India is the most active country on the Quora website.
 
+Before going further, let's have a look at the relationship of words being shared between the pair of questions, and their tendency on being duplicate or not.
+
+<p align="center">
+<img src ="https://raw.githubusercontent.com/rafapetter/udacity-machine-learning-capstone/master/eda/word_match_share.png"/>
+</p>
+
+We can see that this feature has quite a lot of predictive power, as it is good at separating the duplicate questions from the non-duplicate ones. It seems very good at identifying questions which are definitely different, but is not so great at finding questions which are definitely duplicates.
 
 ### Algorithms and Techniques
 
