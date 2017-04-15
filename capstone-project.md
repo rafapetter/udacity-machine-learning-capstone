@@ -25,8 +25,10 @@ To solve this problem I'm having the same motivation as Quora had when releasing
 
 The duplicate detection problem can be defined as follows: given a pair of questions q1 and q2, train a model that learns the function[14]:
 
-**f(q1, q2) → 0 or 1**
- 
+<p align="center"><b>
+f(q1, q2) → 0 or 1
+</b></p>
+
 where 1 represents that q1 and q2 have the same intent and 0 otherwise.
 
 The challenge of text matching lies in detecting duplicates at a intent-based, semantic level. To only use a word-based comparison approach will not give us the best results. Being inspired by recent advances in the deep learning research community, I will approach this challenge by representing sentences on their semantic and syntactic relations from different levels of abstractions with neural networks [7;15]. 
@@ -133,7 +135,7 @@ To have a benchmark so we can use as a threshold for defining success and failur
 ## III. Methodology
 
 ### Data Preprocessing
-After doing a detailed Exploratory Data Analysis (EDA), both on training and test dataset, understanding word frequency and semantics. Now, for the data pre-processing stage of this project, we will convert the questions into semantic vectors, trying two algorithms: GloVe [26] from Stanford NLP Group and a variation of sense2vec [27] from spaCy. Both are algorithms that embed words into a vector space with 300 dimensions in general. They will capture semantics and even analogies between different words. GloVe is easy to train and it is flexible to add new words outside of its vocabulary. SpaCy has been recenlty released and is trained on Wikipedia, therefore, it might be stronger in terms of word semantics.
+After doing a detailed Exploratory Data Analysis (EDA), both on training and test dataset, understanding characters and word frequencies. Now, for the data pre-processing stage of this project, we will convert the questions into semantic vectors, trying two algorithms: GloVe [26] from Stanford NLP Group and a variation of sense2vec [27] from spaCy. Both are algorithms that embed words into a vector space with 300 dimensions in general. They will capture semantics and even analogies between different words. GloVe is easy to train and it is flexible to add new words outside of its vocabulary. SpaCy has been recenlty released and is trained on Wikipedia, therefore, it might be stronger in terms of word semantics.
 
 Then, I will use TF-IDF, which will enhance the mean vector representation. It will be applied weighted average of word vectors by using these scores, to emphasizes the importance of discriminating words and avoid useless, frequent words which are shared by many questions. In other words, this means that we weigh the terms by how uncommon they are, meaning that we care more about rare words existing in both questions than common one. This makes sense, as for example we care more about whether the word "exercise" appears in both than the word "and" - as uncommon words will be more indicative of the content. 
 
