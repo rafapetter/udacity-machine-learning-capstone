@@ -158,7 +158,7 @@ After pre-processing the data, and spliting the data into training and validatio
     from keras import backend as K
     from keras.optimizers import RMSprop, SGD, Adam
 
-To start building the model for feature extraction, I will be defining the Siamese network with input dimension of 300 and 3 layers network using Euclidean distance as the measure of instance similarity. It has Batch Normalization per layer. It is particularly important since BN layers enhance the performance considerably. I believe they are able to normalize the final feature vectors and Euclidean distance performances better in this normalized space. Here's the **create_base_network** method:
+To start building the model for feature extraction, I will be defining the Siamese network with input dimension of 300 and 3 layers network using Euclidean distance as the measure of instance similarity. It has Batch Normalization per layer. It is particularly important since BN layers enhance the performance considerably. I believe they are able to normalize the final feature vectors and Euclidean distance performances better in this normalized space. Here's the **create_base_network** function:
 
     input = Input(shape=(input_dim, ))
     dense1 = Dense(128)(input)
@@ -181,7 +181,7 @@ To start building the model for feature extraction, I will be defining the Siame
     model = Model(input=input, output=bn4)
     return model
     
-Then, I will define the **create_network** method, which it will be responsible for creating the Siamese framework, i.e. two processes with the weights being shared across them.
+Then, I will define the **create_network** function, which it will be responsible for creating the Siamese framework, i.e. two processes with the weights being shared across them.
 
     base_network = create_base_network(input_dim)
     
@@ -212,7 +212,7 @@ And finally let's fit the model and compute accuracies on 50 epoches, saving the
 
 ### Refinement
 
-For the vector representation of words, the GLOVE algorithm gives performance below our expectations. I believe, this is because the questions are short and does not induce a semantic structure that GLOVE is able to learn. When training with the word2vec from spaCy, we get a better performance. The spaCy library was just released, and it seems to be really fast.
+For the vector representation of words, the GloVe algorithm gives performance below our expectations. I believe, this is because the questions are short and does not induce a semantic structure that GloVe is able to learn. When training with the word2vec from spaCy, we get a better performance. The spaCy library was just released, and it seems to be really fast.
 
 For the optimization algorithm, we first used the simple and standard version of SGD (Stochastic Gradient Descent) [31]. And then tried with a better version o SGD called Adam (Adaptive Moment Estimation) [32], to clearly get a better result.
 
@@ -230,16 +230,18 @@ We used the evaluation metric defined by Kaggle on the Quora competition [11], w
 - 3 Layers + Adam + Dropout : 0.25
 - **3 Layers + Adam + Layer Concatenation : 0.21**
 
-When tuning the hyperparameters, as to the optimization function Adam, the best learning rate trained was at 0.001. And definitely in no scenario the Dropout would help on the accuracy results. And the concatenation of different layers improved the performance by 1 percent as the final gain.
+When tuning the hyperparameters, here's a few conclusions: 
 
-A lot of interesting functionality can be implemented using text-pair classification models. Natural language sentence matching (NLSM) has been studied for many years, but the ability to accurately model the relationships between texts is fairly new. The early approaches were interested in designing handcraft features to capture n-gram overlapping, word reordering and syntactic alignments phenomena. This kind of method can work well on a specific task or dataset, but it’s hard to generalize well to other tasks. With the availability of large-scale annotated datasets, many deep learning models were proposed for NLSM. Our framework based on the Siamese architecture [21], where sentences are encoded into sentence vectors based on some neural network encoder, have significantly improved results from the early approaches. Many neural network models are currently being proposed to match sentences from multiple level of granularity [10], applications haven't been explored well yet. And experimental results on many tasks have proofed that the new framework works significantly better than the previous methods. Our model also belongs to this framework, and it has shown its effectiveness.
-
+- The optimization function, Adam, had the best learning rate trained was at 0.001, anything different would cause overfitting or unwanted noise. 
+- Definitely in no scenario the Dropout would help on the accuracy results. 
+- The concatenation of different layers improved the performance by 1 percent as the final gain. 
+- Considering the computational resources at hand, having 50 epoches on an input dimension of 300 was our best option to get the best accuracy results.
 
 ### Justification
 
-This is a brand-new dataset, no results have been published yet. But we do have Quora discussing about their current production model for solving this problem. They have used a random forest model with tens of handcrafted features, including the cosine similarity of the average of the word2vec embeddings of tokens, the number of common words, the number of common topics labeled on the questions, and the part-of-speech tags of the words [14]. And recently they have experimented with end-to-end deep learning solutions.
+A lot of interesting functionality can be implemented using text-pair classification models. Natural language sentence matching (NLSM) has been studied for many years, but the ability to accurately model the relationships between texts is fairly new. The early approaches were interested in designing handcraft features to capture n-gram overlapping, word reordering and syntactic alignments phenomena. This kind of method can work well on a specific task or dataset, but it’s hard to generalize well to other tasks. 
 
-To have a benchmark so we can use as a threshold for defining success and failure, I have trained a Random Forest Classifier from sklearn. As input I've converted the questions pair, from the training dataset, to a matrix of TF-IDF (Term Frequency - Inverse Document Frequency) features and used it to fit a Random Forest model. And finally I ran a prediction on the test dataset and took a log loss score of 0.6015. Comparing that score to the result we got from our best model we can say that we have definitely improved the result by using a deep learning framework.
+With the availability of large-scale annotated datasets, many deep learning models were proposed for NLSM. Our framework, based on the Siamese architecture [21], where sentences are encoded into sentence vectors based on some neural network encoder, have significantly improved results from the early approaches. Many neural network models are currently being proposed to match sentences from multiple level of granularity [10], applications haven't been explored well yet. But experimental results on many tasks have proofed that the new framework works significantly better than the previous methods. Our model also belongs to this framework, and it has shown its effectiveness when comparing to the benchmark, a matrix of TF-IDF (Term Frequency - Inverse Document Frequency) features used to fit a Random Forest model. We have definitely improved the result by using our deep learning framework, dropping the log loss score from 0.6015 to 0.21.
 
 ## V. Conclusion
 
