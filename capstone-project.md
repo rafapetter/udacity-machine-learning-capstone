@@ -26,7 +26,7 @@ To solve this problem I'm having the same motivation as Quora had when releasing
 The duplicate detection problem can be defined as follows: given a pair of questions q1 and q2, train a model that learns the function[14]:
 
 <p align="center"><b>
-f(q1, q2) → 0 or 1
+f(q1, q2)  &#9658;  0 or 1
 </b></p>
 
 where 1 represents that q1 and q2 have the same intent and 0 otherwise.
@@ -82,26 +82,29 @@ Let us have an idea of how the data is distributed with respect to the number of
 
 <p align="center">
 <img src ="https://raw.githubusercontent.com/rafapetter/udacity-machine-learning-capstone/master/eda/chars_distribution.png"/>
+Figure 1 - Distribution of number of characters per question
 </p>
 
-We can see that the number of characters in most questions are in the range from 15 to 150. Both training and test have a very simliar distribution. The test one seems to be smoother, maybe because it has a larger dataset (5 times greater than training).
+We can see on the Figure 1 that the number of characters in most questions are in the range from 15 to 150. Both training and test have a very simliar distribution. The test one seems to be smoother, maybe because it has a larger dataset (5 times greater than training).
 
 One important thing to notice is the steep cut-off at 150 characters for the training set, for most questions, while the test set slowly decreases after 150. And that's because, as of April 2016, Quora allows up to 150 for the question [29]. 
 
 It's also worth noting that I've truncated this histogram at 250 characters, and that the max of the distribution is at just under 1200 characters for both sets - although samples with over 220 characters are very rare. We can only conclude that questions greater than 150 characters are previous to April 2016.
 
-Let's do the same for word count. I'll be using a naive method for splitting words (splitting on spaces instead of using a serious tokenizer), although this should still give us a good idea of the distribution.
+Let's do the same for word count on Figure 2. I'll be using a naive method for splitting words (splitting on spaces instead of using a serious tokenizer), although this should still give us a good idea of the distribution.
 
 <p align="center">
 <img src ="https://raw.githubusercontent.com/rafapetter/udacity-machine-learning-capstone/master/eda/words_distribution.png"/>
+Figure 2 - Distribution of number of words per question
 </p>
 
 We see a similar distribution for word count, with most questions being about 10 words long. It looks to me like the distribution of the training set seems more "pointy", while on the test set it is wider. Nevertheless, they are quite similar.
 
-So what are the most common words? Let's take a look at a word cloud.
+So what are the most common words? Let's take a look at a word cloud on Figure 3.
 
 <p align="center">
 <img src ="https://raw.githubusercontent.com/rafapetter/udacity-machine-learning-capstone/master/eda/word_cloud.png"/>
+Figure 3 - Word cloud
 </p>
 
 On the word cloud, we may conclude a few importat aspects of the dataset:
@@ -116,15 +119,21 @@ Before going further, let's have a look at the relationship of words being share
 
 <p align="center">
 <img src ="https://raw.githubusercontent.com/rafapetter/udacity-machine-learning-capstone/master/eda/word_match_share.png"/>
+Figure 4 - Distribution over word_match_share
 </p>
 
-We can see that this feature has quite a lot of predictive power, as it is good at separating the duplicate questions from the non-duplicate ones. It seems very good at identifying questions which are definitely different, but is not so great at finding questions which are definitely duplicates.
+We can see on Figure 4 that this feature has quite a lot of predictive power, as it is good at separating the duplicate questions from the non-duplicate ones. It seems very good at identifying questions which are definitely different, but is not so great at finding questions which are definitely duplicates.
 
 ### Algorithms and Techniques
 
-To tackle this problem of duplicate questions, I will use a deep learning framework based on the “Siamese” architecture [21]. In this framework, the same neural network encoder (LSTM) is applied to two input sentences individually, so that both of the two sentences are encoded into sentence vectors in the same embedding space. Then, a matching decision is made solely based on the two sentence vectors [22;23]. The advantage of this framework is that sharing parameters makes the model smaller and easier to train, and the sentence vectors can be used for visualization, sentence clustering and many other purposes [24]. The disadvantage is that there is no interaction between the two sentences during the encoding procedure, which may lose some important information.
+To tackle this problem of duplicate questions, I will use a deep learning framework based on the “Siamese” architecture [21], the “Siamese-LSTM” framework. But before diving into this framework, let's define the Siamese and LSTM models separately. 
 
-On the Siamese framework, I will implement the “Siamese-LSTM” model. It will encode two input sentences into two sentence vectors with a neural network encoder, and make a decision based on the cosine similarity between the two sentence vectors. The LSTM model will be designed according to the architectures in [24].
+One of the appeals of LSTM (Long Short Term Memory) is the idea that they might be able to connect previous information to the present task, such as using previous words in a sentece might inform the understanding of the present word [http://colah.github.io/posts/2015-08-Understanding-LSTMs/], i.e. it can retain information from the begining of a question to the end of it, making it very helpful for us to solve our current problem. The LSTM are an improved version of RNN (Recurrent Neural Network), in which, it still creates an internal state of the network allowing it to exhibit dynamic temporal behavior, by using their internal memory to process arbitrary sequences of inputs [https://en.wikipedia.org/wiki/Recurrent_neural_network]. LSTM are normally augmented by recurrent gates called forget gates, preventing backpropagated errors from vanishing or exploding.
+
+The Siamese neural network is a class of neural network architectures that contain two or more identical sub-networks, i.e. they have same parameters and weights. Parameter updating is mirrored across both subnetworks. Siamese networks are popular among tasks that involve finding similarity or a relationship between two comparable things, and in our case the input will take two sentences and the output will score how similar they are. [https://www.quora.com/What-are-Siamese-neural-networks-what-applications-are-they-good-for-and-why]
+
+In the “Siamese-LSTM” framework, the same neural network encoder (LSTM) is applied to two input sentences individually, so that both of the two sentences are encoded into sentence vectors in the same embedding space. Then, a matching decision is made solely based on the two sentence vectors [22;23]. The advantage of this framework is that sharing parameters makes the model smaller and easier to train, and the sentence vectors can be used for visualization, sentence clustering and many other purposes [24]. The disadvantage is that there is no interaction between the two sentences during the encoding procedure, which may lose some important information.
+
 
 ### Benchmark
 
@@ -135,11 +144,22 @@ To have a benchmark so we can use as a threshold for defining success and failur
 ## III. Methodology
 
 ### Data Preprocessing
+
 After doing a detailed Exploratory Data Analysis (EDA), both on training and test dataset, understanding characters and word frequencies, we will use TF-IDF scores, which will enhance the mean vector representation later on. It will be applied weighted average of word vectors by using these scores, to emphasizes the importance of discriminating words and avoid useless, frequent words which are shared by many questions. In other words, this means that we weigh the terms by how uncommon they are, meaning that we care more about rare words existing in both questions than common one. This makes sense, as for example we care more about whether the word "exercise" appears in both than the word "and" - as uncommon words will be more indicative of the content. 
 
 Then, for the data pre-processing stage of this project, we will convert the questions into semantic vectors, trying two algorithms: GloVe [26] from Stanford NLP Group and a variation of sense2vec [27] from spaCy. Both are algorithms that embed words into a vector space with 300 dimensions in general. They will capture semantics and even analogies between different words. GloVe is easy to train and it is flexible to add new words outside of its vocabulary. SpaCy has been recenlty released and is trained on Wikipedia, therefore, it might be stronger in terms of word semantics.
 
 ### Implementation
+
+After pre-processing the data, we will now train our model on the data. We're using a few functions from Keras [https://github.com/fchollet/keras], an easy and fast high-level neural network library for Python, that will help us implement a few actions on our network:
+
+<p style="color:blue;font-weight:900">
+from keras.models import Sequential, Model
+from keras.layers import Dense, Dropout, Lambda, merge, BatchNormalization, Activation, Input, Merge
+from keras import backend as K
+from keras.optimizers import RMSprop, SGD, Adam
+</p>
+
 On the next step, I will build a Siamese network with 3 layers network using Euclidean distance as the measure of instance similarity. It has Batch Normalization per layer. It is particularly important since BN layers enhance the performance considerably. I believe they are able to normalize the final feature vectors and Euclidean distance performances better in this normalized space.
 
 After having the data pre-processed and the model set, the data is split into training and validation set. And now we start training the model for 50 epochs, saving the weights from the model checkpoint with the maximum validation accuracy.
