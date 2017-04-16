@@ -151,18 +151,64 @@ Then, for the data pre-processing stage of this project, we will convert the que
 
 ### Implementation
 
-After pre-processing the data, we will now train our model on the data. We're using a few functions from Keras [https://github.com/fchollet/keras], an easy and fast high-level neural network library for Python, that will help us implement a few actions on our network:
+After pre-processing the data, and spliting the data into training and validation set, we will now train our model on the data. We're using a few functions from Keras [https://github.com/fchollet/keras], an easy and fast high-level neural network library for Python, that will help us implement a few actions on our network:
 
-<p style="color:blue;font-weight:900">
-from keras.models import Sequential, Model
-from keras.layers import Dense, Dropout, Lambda, merge, BatchNormalization, Activation, Input, Merge
-from keras import backend as K
-from keras.optimizers import RMSprop, SGD, Adam
-</p>
+    from keras.models import Sequential, Model
+    from keras.layers import Dense, Dropout, Lambda, merge, BatchNormalization, Activation, Input, Merge
+    from keras import backend as K
+    from keras.optimizers import RMSprop, SGD, Adam
 
-On the next step, I will build a Siamese network with 3 layers network using Euclidean distance as the measure of instance similarity. It has Batch Normalization per layer. It is particularly important since BN layers enhance the performance considerably. I believe they are able to normalize the final feature vectors and Euclidean distance performances better in this normalized space.
+To start building the model for feature extraction, I will be defining the Siamese network with input dimension of 300 and 3 layers network using Euclidean distance as the measure of instance similarity. It has Batch Normalization per layer. It is particularly important since BN layers enhance the performance considerably. I believe they are able to normalize the final feature vectors and Euclidean distance performances better in this normalized space. Here's the **create_base_network** method:
 
-After having the data pre-processed and the model set, the data is split into training and validation set. And now we start training the model for 50 epochs, saving the weights from the model checkpoint with the maximum validation accuracy.
+    input = Input(shape=(input_dim, ))
+    dense1 = Dense(128)(input)
+    bn1 = BatchNormalization(mode=2)(dense1)
+    relu1 = Activation('relu')(bn1)
+
+    dense2 = Dense(128)(relu1)
+    bn2 = BatchNormalization(mode=2)(dense2)
+    res2 = merge([relu1, bn2], mode='sum')
+    relu2 = Activation('relu')(res2)    
+    
+    dense3 = Dense(128)(relu2)
+    bn3 = BatchNormalization(mode=2)(dense3)
+    res3 = Merge(mode='sum')([relu2, bn3])
+    relu3 = Activation('relu')(res3)   
+    
+    feats = merge([relu3, relu2, relu1], mode='concat')
+    bn4 = BatchNormalization(mode=2)(feats)
+
+    model = Model(input=input, output=bn4)
+    return model
+    
+Then, I will define the **create_network** method, which it will be responsible for creating the Siamese framework, i.e. two processes with the weights being shared across them.
+
+    base_network = create_base_network(input_dim)
+    
+    input_a = Input(shape=(input_dim,))
+    input_b = Input(shape=(input_dim,))
+    
+    processed_a = base_network(input_a)
+    processed_b = base_network(input_b)
+    
+    distance = Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
+    model = Model(input=[input_a, input_b], output=distance)
+    return model
+
+Now we will initialize the network, setting both the loss and optimization function:
+
+    net = create_network(300)
+    optimizer = Adam(lr=0.001)
+    net.compile(loss=contrastive_loss, optimizer=optimizer)
+
+And finally let's fit the model and compute accuracies on 50 epoches, saving the weights from the model checkpoint with the maximum validation accuracy:
+
+    net.fit([X_train_norm[:,0,:], X_train_norm[:,1,:]], Y_train,
+          validation_data=([X_test_norm[:,0,:], X_test_norm[:,1,:]], Y_test),
+          batch_size=128, nb_epoch=1, shuffle=True, )
+    
+    pred = net.predict([X_test_norm[:,0,:], X_test_norm[:,1,:]], batch_size=128)
+    te_acc = compute_accuracy(pred, Y_test)
 
 ### Refinement
 
@@ -176,21 +222,18 @@ As for the neural network, I tried to introduce Dropout between layers, but the 
 
 ### Model Evaluation and Validation
 
-The best performing model that we have got was a 3 layers network using Euclidean distance as the measure of instance similarity, with Batch Normalization per layer. I believe, they are able to normalize the final feature vectors and Euclidean distance performances better in this normalized space. This model is reasonable and aligned with our expecations
+The best performing model that we have got was a 3 layers network using Euclidean distance as the measure of instance similarity, with Batch Normalization per layer. I believe, they are able to normalize the final feature vectors and Euclidean distance performances better in this normalized space. This model is reasonable and aligned with our expecations.
 
-We will use the evaluation metric defined by Kaggle on the Quora competition [11], where the model will be evaluated on the log loss (logistic loss or cross-entropy loss) between the predicted values and the ground truth. For each ID in the test set, there must have a prediction on the probability that the questions are duplicates (a number between 0 and 1). The log loss looks at the actual probabilities as opposed to the order of predictions. The metric is negative the log likelihood of the model that says each test observation is chosen independently from a distribution that places the submitted probability mass on the corresponding class, for each observation [28].
-
-<p align="center">
-<img src ="https://i.stack.imgur.com/NEmt7.png)"/>
-</p>
-
-where N is the number of observations, M is the number of class labels, loglog is the natural logarithm, yi,jyi,j is 1 if observation ii is in class jj and 0 otherwise, and pi,jpi,j is the predicted probability that observation ii is in class jj.
-
-Here is a look at the resuls from the 3 different model architectures evaluated.
+We used the evaluation metric defined by Kaggle on the Quora competition [11], where the model is evaluated on the log loss  between the predicted values and the ground truth. Here is a look at the resuls from the 3 different model architectures evaluated.
 
 - 3 Layers + Adam : 0.22
 - 3 Layers + Adam + Dropout : 0.25
 - **3 Layers + Adam + Layer Concatenation : 0.21**
+
+When tuning the hyperparameters, as to the optimization function Adam, the best learning rate trained was at 0.001. And definitely in no scenario the Dropout would help on the accuracy results. And the concatenation of different layers improved the performance by 1 percent as the final gain.
+
+A lot of interesting functionality can be implemented using text-pair classification models. Natural language sentence matching (NLSM) has been studied for many years, but the ability to accurately model the relationships between texts is fairly new. The early approaches were interested in designing handcraft features to capture n-gram overlapping, word reordering and syntactic alignments phenomena. This kind of method can work well on a specific task or dataset, but it’s hard to generalize well to other tasks. With the availability of large-scale annotated datasets, many deep learning models were proposed for NLSM. Our framework based on the Siamese architecture [21], where sentences are encoded into sentence vectors based on some neural network encoder, have significantly improved results from the early approaches. Many neural network models are currently being proposed to match sentences from multiple level of granularity [10], applications haven't been explored well yet. And experimental results on many tasks have proofed that the new framework works significantly better than the previous methods. Our model also belongs to this framework, and it has shown its effectiveness.
+
 
 ### Justification
 
