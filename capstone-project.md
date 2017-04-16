@@ -243,7 +243,13 @@ A lot of interesting functionality can be implemented using text-pair classifica
 
 With the availability of large-scale annotated datasets, many deep learning models were proposed for NLSM. Our framework, based on the Siamese architecture [21], where sentences are encoded into sentence vectors based on some neural network encoder, have significantly improved results from the early approaches. Many neural network models are currently being proposed to match sentences from multiple level of granularity [10], applications haven't been explored well yet. But experimental results on many tasks have proofed that the new framework works significantly better than the previous methods. Our model also belongs to this framework, and it has shown its effectiveness when comparing to the benchmark, a matrix of TF-IDF (Term Frequency - Inverse Document Frequency) features used to fit a Random Forest model. We have definitely improved the result by using our deep learning framework, dropping the log loss score from 0.6015 to 0.21.
 
+I believe that our best score, 0.21, might be improved if we can spend more resources on newly proposed neural networks, similar in behavior to the Siamese framework. I would guess that having the score dropped to 0.10 would be ideal for Quora to decide to put the model in production at their website, maybe proactively restricting duplicates questions. But I do think that our score of 0.21 is significant enough to have solved the problem, if we consider that Quora just want to start using a solution that improve their algorithm of suggesting similar questions before a user can create a new one.
+
 ## V. Conclusion
+
+### Free-Form Visualization
+
+
 
 ### Reflection
 
