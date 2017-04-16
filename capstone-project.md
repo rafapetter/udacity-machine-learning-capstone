@@ -86,7 +86,7 @@ Let us have an idea of how the data is distributed with respect to the number of
 
 We can see that the number of characters in most questions are in the range from 15 to 150. Both training and test have a very simliar distribution. The test one seems to be smoother, maybe because it has a larger dataset (5 times greater than training).
 
-One important thing to notice is the steep cut-off at 150 characters for the training set, for most questions, while the test set slowly decreases after 150. And that's because, as of April 2016, Quora allows up to 150 for the question [https://www.quora.com/topic/Character-Limits-on-Quora/faq]. 
+One important thing to notice is the steep cut-off at 150 characters for the training set, for most questions, while the test set slowly decreases after 150. And that's because, as of April 2016, Quora allows up to 150 for the question [29]. 
 
 It's also worth noting that I've truncated this histogram at 250 characters, and that the max of the distribution is at just under 1200 characters for both sets - although samples with over 220 characters are very rare. We can only conclude that questions greater than 150 characters are previous to April 2016.
 
@@ -110,7 +110,7 @@ On the word cloud, we may conclude a few importat aspects of the dataset:
 
 - **Content about recent events**: high frequency terms like 'Hillary Clinton' and 'Donald Trump', most likely related to the recent presidential election. We may conclude that we have a dataset with questions that were made over the last year.
 
-- **India user base**: there's a lot about the country of India, with terms like 'India', 'Bangalore', 'India Best'. Which confirms the results from Alexa [http://www.alexa.com/siteinfo/quora.com] showing that India is the most active country on the Quora website.
+- **India user base**: there's a lot about the country of India, with terms like 'India', 'Bangalore', 'India Best'. Which confirms the results from Alexa [30] showing that India is the most active country on the Quora website.
 
 Before going further, let's have a look at the relationship of words being shared between the pair of questions, and their tendency on being duplicate or not.
 
@@ -148,7 +148,7 @@ After having the data pre-processed and the model set, the data is split into tr
 
 For the vector representation of words, the GLOVE algorithm gives performance below our expectations. I believe, this is because the questions are short and does not induce a semantic structure that GLOVE is able to learn. When training with the word2vec from spaCy, we get a better performance. The spaCy library was just released, and it seems to be really fast.
 
-For the optimization algorithm, we first used the simple and standard version of SGD (Stochastic Gradient Descent) [https://en.wikipedia.org/wiki/Stochastic_gradient_descent]. And then tried with a better version o SGD called Adam (Adaptive Moment Estimation) [https://arxiv.org/abs/1412.6980], to clearly get a better result.
+For the optimization algorithm, we first used the simple and standard version of SGD (Stochastic Gradient Descent) [31]. And then tried with a better version o SGD called Adam (Adaptive Moment Estimation) [32], to clearly get a better result.
 
 As for the neural network, I tried to introduce Dropout between layers, but the best I have got was 0.75. Then by replacing Dropout with concatenation of different layers, it improved the performance.
 
@@ -196,7 +196,72 @@ I had a bit more difficult on step 5, because it was hard to find a better combi
 
 ### Improvement
 
-Natural language sentence matching (NLSM) has been studied for many years. The early approaches were interested in designing hand-craft features to capture n-gram overlapping, word reordering and syntactic alignments phenomena [Heilman and Smith, 2010; Wang and Ittycheriah, 2015]. This kind of method can work well on a specific task or dataset, but it’s hard to generalize well to other tasks. With the availability of large-scale annotated datasets [Bowman et al., 2015], many deep learning models were proposed for NLSM. 
+Natural language sentence matching (NLSM) has been studied for many years. The early approaches were interested in designing hand-craft features to capture n-gram overlapping, word reordering and syntactic alignments phenomena. This kind of method can work well on a specific task or dataset, but it’s hard to generalize well to other tasks. With the availability of large-scale annotated datasets, many deep learning models were proposed for NLSM. 
 
-The framework we used, based on the Siamese architecture [Bromley et al., 1993], where sentences are encoded into sentence vectors based on some neural network encoder, and then the relationship between two sentences was decided solely based on the two sentence vectors [Bowman et al., 2015; Yang et al., 2015; Tan et al., 2015]. However, this kind of framework ignores
-the fact that the lower level interactive features between two sentences are indispensable. Therefore, many neural network models were proposed to match sentences from multiple level of granularity [Yin et al., 2015; Wang and Jiang, 2016; Wang et al., 2016d]. Experimental results on many tasks have proofed that the new framework works significantly better than the previous methods.
+The framework we used, based on the Siamese architecture [21], where sentences are encoded into sentence vectors based on some neural network encoder, and then the relationship between two sentences was decided solely based on the two sentence vectors. However, this kind of framework ignores the fact that the lower level interactive features between two sentences are indispensable. Therefore, many neural network models were proposed to match sentences from multiple level of granularity [10]. Experimental results on many tasks have proofed that the new framework works significantly better than the previous methods.
+
+### References
+
+[1] Li, H., and Xu, J. 2013. Semantic Matching in Search. Foundations and Trends in Information Retrieval 7(5):343–469.
+
+[2] Berger, A.; Caruana, R.; Cohn, D.; Freitag, D.; and Mittal, V. 2000. Bridging the Lexical Chasm: Statistical Approaches to Answer-finding. In Proceedings of the 23rd Annual International ACM SIGIR Conference on Research and Development in Information Retrieval , 192–199.
+
+[3] Dolan, B.; Quirk, C.; and Brockett, C. 2004. Unsupervised construction of large paraphrase corpora: Exploiting massively parallel news sources. In Proceedings of the 20th International Conference on Computational Linguistics (Coling) , 350–356.
+
+[4] Huang, P.-S.; He, X.; Gao, J.; Deng, L.; Acero, A.; and Heck, L. 2013. Learning deep structured semantic models for web search using clickthrough data. In Proceedings of the 22nd ACM International Conference on Information & Knowledge Management (CIKM) , 2333– 2338.
+
+[5] Lu, Z., and Li, H. 2013. A Deep Architecture for Matching Short Texts. In Advances in Neural Information Processing Systems (NIPS) , 1367–1375.
+
+[6] Shen, Y.; He, X.; Gao, J.; Deng, L.; and Mesnil, G. 2014. A Latent Semantic Model with Convolutional-Pooling Structure for Information Retrieval. In Proceedings of the 23rd ACM International Conference on Conference on Information and Knowledge Management (CIKM) , 101–110.
+
+[7] Hu, B.; Lu, Z.; Li, H.; and Chen, Q. 2014. Convolutional neural network architectures for matching natural language sentences. In Advances in Neural Information Processing Systems (NIPS) , 2042–2050.
+
+[8] Qiu, X., and Huang, X. 2015. Convolutional Neural Tensor Network Architecture for Community-Based Question Answering. In Proceedings of the 24th International Joint Conference on Artificial Intelligence (IJCAI) , 1305–1311.
+
+[9] Palangi, H.; Deng, L.; Shen, Y.; Gao, J.; He, X.; Chen, J.; Song, X.; and Ward, R. K. 2015. Deep sentence embedding using the long short term memory network: Analysis and application to information retrieval. CoRR abs/1502.06922.
+
+[10] Yin, W., and Schutze, H. 2015a. Convolutional Neural Network for Paraphrase Identifica- tion. In The 2015 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (NAACL) , 901–911.
+
+[11] Quora Question Pairs - Can you identify question pairs that have the same intent? https://www.kaggle.com/c/quora-question-pairs
+
+[12] Quora - https://en.wikipedia.org/wiki/Quora
+
+[13] First Quora Dataset Release: Question Pairs - https://data.quora.com/First-Quora-Dataset-Release-Question-Pairs
+
+[14] Semantic Question Matching with Deep Learning - https://engineering.quora.com/Semantic-Question-Matching-with-Deep-Learning
+
+[15] Socher, R.; Huang, E. H.; Pennington, J.; Ng, A. Y.; and Manning, C. D. 2011. Dynamic Pooling and Unfolding Recursive Autoencoders for Paraphrase Detection. In Advances in Neural Information Processing Systems (NIPS) , 801–809.
+
+[16] Mikolov, T.; Sutskever, I.; Chen, K.; Corrado, G. S.; and Dean, J. 2013. Distributed representations of words and phrases and their compositionality. In Advances in Neural Information Processing Systems (NIPS) , 3111–3119.
+
+[17] http://nlp.shef.ac.uk/meter/
+
+[18] http://research.microsoft.com/en-us/downloads/607d14d9-20cd-47e3-85bc-a2f65cd28042/
+
+[19] http://www.webis.de/research/corpora
+
+[20] https://nlp.stanford.edu/projects/snli/
+
+[21] Jane Bromley, James W. Bentz, Léon Bottou, Isabelle Guyon, Yann LeCun, Cliff Moore, Eduard Sackinger, and Roopak Shah. Signature verification using a ”siamese” time delay neural network. IJPRAI , 7(4):669– 688, 1993.
+
+[22] Samuel R Bowman, Gabor Angeli, Christopher Potts, and Christopher D Manning. A large annotated corpus for learning natural language inference. arXiv preprint arXiv:1508.05326 , 2015.
+
+[23] Ming Tan, Cicero dos Santos, Bing Xiang, and Bowen Zhou. Lstm-based deep learning models for non-factoid answer selection. arXiv preprint arXiv:1511.04108 , 2015.
+
+[24] Zhiguo Wang, Haitao Mi, and Abraham Ittycheriah. Semi-supervised clustering for short text via deep representation learning. In CoNLL , 2016.
+
+[25] Ankur P Parikh, Oscar Täckström, Dipanjan Das, Jakob Uszkoreit. 2016. A Decomposable Attention Model for Natural Language Inference, arXiv 2016.
+
+[26] GloVe - https://nlp.stanford.edu/projects/glove/
+
+[27] Sense2vec with spaCy and Gensim - https://explosion.ai/blog/sense2vec-with-spacy
+
+[28] https://www.kaggle.com/wiki/LogLoss
+
+[29] https://www.quora.com/topic/Character-Limits-on-Quora/faq
+
+[30] http://www.alexa.com/siteinfo/quora.com
+
+[31] https://en.wikipedia.org/wiki/Stochastic_gradient_descent
+
+[32] https://arxiv.org/abs/1412.6980
