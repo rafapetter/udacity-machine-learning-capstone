@@ -51,17 +51,17 @@ where N is the number of observations, M is the number of class labels, loglog i
 
 The Quora dataset is a set of question pairs, with annotations indicating whether the questions request the same information. This data set is large, real, and relevant — a rare combination. Each line contains IDs for each question in the pair, the full text for each question, and a binary value that indicates whether the line truly contains a duplicate pair. Considering that the dataset is already split into two files, training and test, here's a quick analysis of this dataset.
 
-**1) Training**:
-  - Question pairs: 404290
-  - Questions: 537933
-  - Duplicate pairs: 36.92%
-  - Most questions have from 15 to 150 characters
+**1) Training**: <br/>
+  - Question pairs: 404290 <br/>
+  - Questions: 537933<br/>
+  - Duplicate pairs: 36.92%<br/>
+  - Most questions have from 15 to 150 characters<br/>
 
-**2) Test**:
-  - Question pairs: 2345796
-  - Questions: 4363832
-  - Question pairs (Training) / Question pairs (Test): 17.0%
-  - Most questions have from 15 to 150 characters  
+**2) Test**:<br/>
+  - Question pairs: 2345796<br/>
+  - Questions: 4363832<br/>
+  - Question pairs (Training) / Question pairs (Test): 17.0%<br/>
+  - Most questions have from 15 to 150 characters  <br/>
   
 From the training dataset, 37% are confirmed duplicates (positive class), which it seems reasonable in a real-life scenario since we expect that the Quora user is more likely to have looked for an answer before posting a question. All of the questions in the training are genuine examples from Quora. One source of negative examples were pairs of “related questions” which, although pertaining to similar topics, are not truly semantically equivalent [13]. Both training and test have a simliar distribution of number of characters per question, with only a few outliers out of this range.
 
@@ -128,9 +128,9 @@ We can see on Figure 4 that this feature has quite a lot of predictive power, as
 
 To tackle this problem of duplicate questions, I will use a deep learning framework based on the “Siamese” architecture [21], the “Siamese-LSTM” framework. But before diving into this framework, let's define the Siamese and LSTM models separately. 
 
-One of the appeals of LSTM (Long Short Term Memory) is the idea that they might be able to connect previous information to the present task, such as using previous words in a sentece might inform the understanding of the present word [http://colah.github.io/posts/2015-08-Understanding-LSTMs/], i.e. it can retain information from the begining of a question to the end of it, making it very helpful for us to solve our current problem. The LSTM are an improved version of RNN (Recurrent Neural Network), in which, it still creates an internal state of the network allowing it to exhibit dynamic temporal behavior, by using their internal memory to process arbitrary sequences of inputs [https://en.wikipedia.org/wiki/Recurrent_neural_network]. LSTM are normally augmented by recurrent gates called forget gates, preventing backpropagated errors from vanishing or exploding.
+One of the appeals of LSTM (Long Short Term Memory) is the idea that they might be able to connect previous information to the present task, such as using previous words in a sentece might inform the understanding of the present word [33], i.e. it can retain information from the begining of a question to the end of it, making it very helpful for us to solve our current problem. The LSTM are an improved version of RNN (Recurrent Neural Network), in which, it still creates an internal state of the network allowing it to exhibit dynamic temporal behavior, by using their internal memory to process arbitrary sequences of inputs [34]. LSTM are normally augmented by recurrent gates called forget gates, preventing backpropagated errors from vanishing or exploding.
 
-The Siamese neural network is a class of neural network architectures that contain two or more identical sub-networks, i.e. they have same parameters and weights. Parameter updating is mirrored across both subnetworks. Siamese networks are popular among tasks that involve finding similarity or a relationship between two comparable things, and in our case the input will take two sentences and the output will score how similar they are. [https://www.quora.com/What-are-Siamese-neural-networks-what-applications-are-they-good-for-and-why]
+The Siamese neural network is a class of neural network architectures that contain two or more identical sub-networks, i.e. they have same parameters and weights. Parameter updating is mirrored across both subnetworks. Siamese networks are popular among tasks that involve finding similarity or a relationship between two comparable things, and in our case the input will take two sentences and the output will score how similar they are [35].
 
 In the “Siamese-LSTM” framework, the same neural network encoder (LSTM) is applied to two input sentences individually, so that both of the two sentences are encoded into sentence vectors in the same embedding space. Then, a matching decision is made solely based on the two sentence vectors [22;23]. The advantage of this framework is that sharing parameters makes the model smaller and easier to train, and the sentence vectors can be used for visualization, sentence clustering and many other purposes [24]. The disadvantage is that there is no interaction between the two sentences during the encoding procedure, which may lose some important information.
 
@@ -151,7 +151,7 @@ Then, for the data pre-processing stage of this project, we will convert the que
 
 ### Implementation
 
-After pre-processing the data, and spliting the data into training and validation set, we will now train our model on the data. We're using a few functions from Keras [https://github.com/fchollet/keras], an easy and fast high-level neural network library for Python, that will help us implement a few actions on our network:
+After pre-processing the data, and spliting the data into training and validation set, we will now train our model on the data. We're using a few functions from Keras [36], an easy and fast high-level neural network library for Python, that will help us implement a few actions on our network:
 
     from keras.models import Sequential, Model
     from keras.layers import Dense, Dropout, Lambda, merge, BatchNormalization, Activation, Input, Merge
@@ -249,7 +249,12 @@ I believe that our best score, 0.21, might be improved if we can spend more reso
 
 ### Free-Form Visualization
 
+During training we can see a constant decrease in loss over time, by epoch. Which strongly suggests that our model is steadly learning to predict a class about the pair of questions. In Figure 5 we have the timeline of this loss:
 
+<p align="center">
+<img src ="https://raw.githubusercontent.com/rafapetter/udacity-machine-learning-capstone/master/eda/train_validation_loss.png"/>
+Figure 5 - Loss over time
+</p>
 
 ### Reflection
 
@@ -336,3 +341,11 @@ The framework we used, based on the Siamese architecture [21], where sentences a
 [31] https://en.wikipedia.org/wiki/Stochastic_gradient_descent
 
 [32] https://arxiv.org/abs/1412.6980
+
+[33] http://colah.github.io/posts/2015-08-Understanding-LSTMs/
+
+[34] https://en.wikipedia.org/wiki/Recurrent_neural_network
+
+[35] https://www.quora.com/What-are-Siamese-neural-networks-what-applications-are-they-good-for-and-why
+
+[36] https://github.com/fchollet/keras
