@@ -201,7 +201,7 @@ Now we will initialize the network, setting both the loss and optimization funct
     optimizer = Adam(lr=0.001)
     net.compile(loss=contrastive_loss, optimizer=optimizer)
 
-And finally let's fit the model and compute accuracies on 50 epoches, saving the weights from the model checkpoint with the maximum validation accuracy:
+And finally let's fit the model and compute accuracies on 10 epoches, saving the weights from the model checkpoint with the maximum validation accuracy:
 
     net.fit([X_train_norm[:,0,:], X_train_norm[:,1,:]], Y_train,
           validation_data=([X_test_norm[:,0,:], X_test_norm[:,1,:]], Y_test),
@@ -235,7 +235,7 @@ When tuning the hyperparameters, here's a few conclusions:
 - The optimization function, Adam, had the best learning rate trained was at 0.001, anything different would cause overfitting or unwanted noise. 
 - Definitely in no scenario the Dropout would help on the accuracy results. 
 - The concatenation of different layers improved the performance by 1 percent as the final gain. 
-- Considering the computational resources at hand, having 50 epoches on an input dimension of 300 was our best option to get the best accuracy results.
+- Considering the computational resources at hand, having 10 epoches on an input dimension of 300 was our best option to get the best accuracy results.
 
 ### Justification
 
@@ -265,7 +265,7 @@ The process used for this project can be summarized using the following steps:
 3. TF-IDF scores were used to enhance the mean vector representation used on the next step.
 4. The questions were converted to semantic vectors, trying two algorithms: GloVe [26] from Stanford NLP Group and a variation of sense2vec [27] from spaCy.
 5. A Siamese network was built with 3 layers network. It had Batch Normalization per layer.
-6. The data is split into training and validation set, with 50 epochs. And the model was set by training on this network.
+6. The data is split into training and validation set, with 10 epochs. And the model was set by training on this network.
 7. And finally, we evaluated the model trained, by getting the best checkpointed model from the training above and run on the test set.
 
 I had a bit more difficult on step 5, because it was hard to find a better combination of layers on the network. I did expected Dropouts to improve the accuracy performance, but it didn't.
